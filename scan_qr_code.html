@@ -48,10 +48,13 @@
                     facingMode: 'environment',
                     aspectRatio: mobileAspectRatio,
                 },
+                rememberLastUsedCamera: true,
+                // Only support camera scan type.
+                supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
             };
 
             html5QrCode.start(
-                { facingMode: { exact: "environment" } }, // Select back camera or fail with `OverconstrainedError`.
+                { facingMode: { exact: "environment" }, }, // Select back camera or fail with `OverconstrainedError`.
                 configs,                                // QR scanner config
                 onScanSuccess,                         // Success callback
             ).catch(err => {
@@ -72,7 +75,7 @@
         }
 
         // Request video capture permission on page load
-        window.onload = startQrScanner(); //requestVideoCapturePermission;
+        window.onload = requestVideoCapturePermission;
     </script>
 </body>
 
