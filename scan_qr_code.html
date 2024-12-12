@@ -22,32 +22,54 @@
      <h1>Scan QR Code</h1>
      <div style="width: 500px" id="reader"></div>
     <script>
-      const html5QrCode = new Html5Qrcode("reader");
-        const width = window.innerWidth
-        const height = window.innerHeight
-        const aspectRatio = width / height
-        const reverseAspectRatio = height / width
-
-        const mobileAspectRatio = reverseAspectRatio > 1.5
-            ? reverseAspectRatio + (reverseAspectRatio * 12 / 100)
-            : reverseAspectRatio
-
-        const configs = {
-            fps: 20, // frame per seconds for qr code scanning
-            qrbox: 250,
-            videoConstraints: {
-                facingMode: 'environment',
-                aspectRatio: mobileAspectRatio,
-            },
+      function onScanSuccess(decodedText, decodedResult) {
+            // Handle on success condition with the decoded text or result.
+            console.log(`Scan result: ${decodedText}`, decodedResult);
         }
-        html5QrCode.start(
-            { facingMode: { exact: "environment" } }, // Select back camera or fail with `OverconstrainedError`.
-            configs,                                // QR scanner config
-            onScanSuccess,                         // Success callback
-        ).catch(err => {
-            // Handle initialization failure (e.g., camera permission denied)
-            console.error("Failed to start QR scanner:", err);
-        });
+
+        function startQrScanner() {
+            const html5QrCode = new Html5Qrcode("reader");
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            const aspectRatio = width / height;
+            const reverseAspectRatio = height / width;
+
+            const mobileAspectRatio = reverseAspectRatio > 1.5
+                ? reverseAspectRatio + (reverseAspectRatio * 12 / 100)
+                : reverseAspectRatio;
+
+            const configs = {
+                fps: 20, // frame per seconds for qr code scanning
+                qrbox: 250,
+                videoConstraints: {
+                    facingMode: 'environment',
+                    aspectRatio: mobileAspectRatio,
+                },
+            };
+
+            html5QrCode.start(
+                { facingMode: { exact: "environment" } }, // Select back camera or fail with `OverconstrainedError`.
+                configs,                                // QR scanner config
+                onScanSuccess,                         // Success callback
+            ).catch(err => {
+                // Handle initialization failure (e.g., camera permission denied)
+                console.error("Failed to start QR scanner:", err);
+            });
+        }
+
+        function requestVideoCapturePermission() {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function(stream) {
+                    // Permission granted, start the QR scanner
+                    startQrScanner();
+                })
+                .catch(function(err) {
+                    console.error("Error accessing video capture: ", err);
+                });
+        }
+
+        // Request video capture permission on page load
+        window.onload = requestVideoCapturePermission;
     </script>
 </body>
 
