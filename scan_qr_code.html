@@ -22,13 +22,16 @@
      <h1>Scan QR Code</h1>
      <div style="width: 500px" id="reader"></div>
     <script>
+      const html5QrCode = new Html5Qrcode("reader");
+
       function onScanSuccess(decodedText, decodedResult) {
             // Handle on success condition with the decoded text or result.
             console.log(`Scan result: ${decodedText}`, decodedResult);
+            window.location = "https://tan2nt.github.io/webview_qr_scanner/scan_qr_code.html?qr_code=${decodedText}"
+            html5QrCode.clear;
         }
 
         function startQrScanner() {
-            const html5QrCode = new Html5Qrcode("reader");
             const width = window.innerWidth;
             const height = window.innerHeight;
             const aspectRatio = width / height;
