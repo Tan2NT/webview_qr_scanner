@@ -28,7 +28,7 @@
             // Handle on success condition with the decoded text or result.
             console.log(`Scan result: ${decodedText}`, decodedResult);
             window.location = "https://tan2nt.github.io/webview_qr_scanner/scan_qr_code.html?qr_code=${decodedText}"
-            html5QrCode.clear;
+            html5QrCode.stop();
         }
 
         function startQrScanner() {
