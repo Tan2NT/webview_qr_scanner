@@ -19,64 +19,107 @@
 </head>
 
 <body>
-     <h1>Scan QR Code</h1>
-     <div style="width: 500px" id="reader"></div>
-    <script>
-      const html5QrCode = new Html5Qrcode("reader");
+<h1>Scan QR Code</h1>
+<div style="width: 500px" id="reader"></div>
+<script>
+  const html5QrCode = new Html5Qrcode("reader");
 
-      function onScanSuccess(decodedText, decodedResult) {
-            // Handle on success condition with the decoded text or result.
-            console.log(`Scan result: ${decodedText}`, decodedResult);
-            window.location = "https://tan2nt.github.io/webview_qr_scanner/scan_qr_code.html?qr_code=${decodedText}"
-            html5QrCode.stop();
+  function stopQrScanner() {
+     html5QrCode.stop().then(() => {
+       html5QrCode.clear();
+       console.log("QR scanner stopped.");
+   }).catch(err => {
+       console.error("Failed to stop the QR scanner:", err);
+   });
+  }
+
+  function onScanSuccess(decodedText, decodedResult) {
+      console.log(`Scan result: ${decodedText}`);
+      stopQrScanner();
+  }
+
+   function onScanFailure(error) {
+      console.warn(`QR code parse error: ${error}`)
+      // alert("Failed to detect a valid QR code. Please try again.");
+  }
+
+  function startQrScanner() {
+      // const html5QrCode = new Html5Qrcode("reader");
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      const aspectRatio = width / height;
+      const reverseAspectRatio = height / width;
+
+      const mobileAspectRatio = reverseAspectRatio > 1.5
+          ? reverseAspectRatio + (reverseAspectRatio * 12 / 100)
+          : reverseAspectRatio;
+
+      const configs = {
+          fps: 20, // frame per seconds for qr code scanning
+          qrbox: 250,
+          videoConstraints: {
+              facingMode: 'environment',
+              aspectRatio: mobileAspectRatio,
+          },
+          rememberLastUsedCamera: true,
+          //supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
+      };
+
+      html5QrCode.start(
+          { facingMode: { exact: "environment" } },
+          configs,
+          onScanSuccess,
+          // onScanFailure,
+      ).catch(err => {
+          // Handle initialization failure (e.g., camera permission denied)
+          console.error("Failed to start QR scanner:", err);
+      });
+  }
+
+  function checkVideoCapturePermission() {
+    navigator.permissions.query({ name: 'camera' }).then(function(permissionStatus) {
+        if (permissionStatus.state === 'granted') {
+            console.log("Video capture permission is enabled. => startQRScanner");
+            startQrScanner();
+        } else if (permissionStatus.state === 'prompt') {
+            console.log("Video capture permission is not yet granted, user will be prompted.");
+            requestVideoCapturePermission();
+        } else {
+            console.log("Video capture permission is denied.");
+            requestVideoCapturePermission();
         }
+    }).catch(function(error) {
+        console.error("Error checking video capture permission: ", error);
+    });
+}
 
-        function startQrScanner() {
-            const width = window.innerWidth;
-            const height = window.innerHeight;
-            const aspectRatio = width / height;
-            const reverseAspectRatio = height / width;
-
-            // const mobileAspectRatio = reverseAspectRatio > 1.5
-            //     ? reverseAspectRatio + (reverseAspectRatio * 12 / 100)
-            //     : reverseAspectRatio;
-
-            const configs = {
-                fps: 20, // frame per seconds for qr code scanning
-                qrbox: 250,
-                videoConstraints: {
-                    facingMode: 'environment',
-                    // aspectRatio: mobileAspectRatio,
-                },
-                // rememberLastUsedCamera: true,
-                // // Only support camera scan type.
-                // supportedScanTypes: [Html5QrcodeScanType.SCAN_TYPE_CAMERA],
-            };
-
-            html5QrCode.start(
-                { facingMode: { exact: "environment" }, }, // Select back camera or fail with `OverconstrainedError`.
-                configs,                                // QR scanner config
-                onScanSuccess,                         // Success callback
-            ).catch(err => {
-                // Handle initialization failure (e.g., camera permission denied)
-                console.error("Failed to start QR scanner:", err);
-            });
+  function requestVideoCapturePermission() {
+     var constraints = {
+       video: {facingMode: { exact: "environment" }}, // use back camera
+       audio: false
+     }
+     navigator.mediaDevices.getUserMedia(constraints).then(function(stream) {
+       // Camera is not in use, you can start using it
+        console.log("Camera is available.");
+        stream.getTracks().forEach(track => track.stop()); // Stop the stream to release the camera
+       startQrScanner();
+     }).catch(function(err) {
+        if (err.name === "NotReadableError") {
+          console.error("Camera is already in use.");
+        } else {
+          console.error("Error accessing camera: ", err);
         }
+     });
+ }
 
-        function requestVideoCapturePermission() {
-            navigator.mediaDevices.getUserMedia({ video: true })
-                .then(function(stream) {
-                    // Permission granted, start the QR scanner
-                    startQrScanner();
-                })
-                .catch(function(err) {
-                    console.error("Error accessing video capture: ", err);
-                });
-        }
+  // Request video capture permission on page load
+  window.onload = checkVideoCapturePermission;
 
-        // Request video capture permission on page load
-        window.onload = requestVideoCapturePermission;
-    </script>
+  window.addEventListener('beforeunload', function() {
+    console.log("Page is being unloaded.");
+    stopQrScanner();
+  });
+</script>
 </body>
 
 </html>
