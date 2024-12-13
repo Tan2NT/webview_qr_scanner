@@ -21,6 +21,8 @@
 <body>
 <h1>Scan QR Code</h1>
 <div style="width: 500px" id="reader"></div>
+<button id="startScanButton">Start Scan</button>
+<button id="stopScanButton">Stop Scan</button>
 <script>
   const html5QrCode = new Html5Qrcode("reader");
 
@@ -112,8 +114,11 @@
      });
  }
 
+  document.getElementById('startScanButton').addEventListener('click', checkVideoCapturePermission);
+  document.getElementById('stopScanButton').addEventListener('click', stopQrScanner);
+
   // Request video capture permission on page load
-  window.onload = checkVideoCapturePermission;
+  // window.onload = checkVideoCapturePermission;
 
   window.addEventListener('beforeunload', function() {
     console.log("Page is being unloaded.");
