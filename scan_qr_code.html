@@ -95,25 +95,39 @@
     });
 }
 
-  function requestVideoCapturePermission() {
-     var constraints = {
-    //    video: {facingMode: { exact: "environment" }}, // use back camera
-       video: {facingMode: "environment" }, // use back camera
-       audio: false
-     }
-     navigator.mediaDevices.getUserMedia(constraints).then(function(stream) {
-       // Camera is not in use, you can start using it
-        console.log("Camera is available.");
+function requestVideoCapturePermission() {
+  var constraints = {
+    video: { facingMode: { exact: "environment" } }, // use back camera
+    audio: false
+  };
+
+  navigator.mediaDevices.getUserMedia(constraints).then(function(stream) {
+    // Camera is not in use, you can start using it
+    console.log("Camera is available.");
+    stream.getTracks().forEach(track => track.stop()); // Stop the stream to release the camera
+    startQrScanner();
+  }).catch(function(err) {
+    if (err.name === "OverconstrainedError") {
+      console.warn("Exact constraint not met, trying without exact constraint.");
+      // Fallback to any available camera
+      var fallbackConstraints = {
+        video: { facingMode: "environment" }, // use back camera if available
+        audio: false
+      };
+      navigator.mediaDevices.getUserMedia(fallbackConstraints).then(function(stream) {
+        console.log("Camera is available with fallback constraints.");
         stream.getTracks().forEach(track => track.stop()); // Stop the stream to release the camera
-       startQrScanner();
-     }).catch(function(err) {
-        if (err.name === "NotReadableError") {
-          console.error("Camera is already in use.");
-        } else {
-          console.error("Error accessing camera: ", err);
-        }
-     });
- }
+        startQrScanner();
+      }).catch(function(fallbackErr) {
+        console.error("Error accessing camera with fallback constraints: ", fallbackErr);
+      });
+    } else if (err.name === "NotReadableError") {
+      console.error("Camera is already in use.");
+    } else {
+      console.error("Error accessing camera: ", err);
+    }
+  });
+}
 
   document.getElementById('startScanButton').addEventListener('click', requestVideoCapturePermission);
   document.getElementById('stopScanButton').addEventListener('click', stopQrScanner);
