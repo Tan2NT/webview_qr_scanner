@@ -97,7 +97,8 @@
 
   function requestVideoCapturePermission() {
      var constraints = {
-       video: {facingMode: { exact: "environment" }}, // use back camera
+    //    video: {facingMode: { exact: "environment" }}, // use back camera
+       video: {facingMode: "environment" }, // use back camera
        audio: false
      }
      navigator.mediaDevices.getUserMedia(constraints).then(function(stream) {
