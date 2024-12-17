@@ -114,7 +114,7 @@
      });
  }
 
-  document.getElementById('startScanButton').addEventListener('click', checkVideoCapturePermission);
+  document.getElementById('startScanButton').addEventListener('click', requestVideoCapturePermission);
   document.getElementById('stopScanButton').addEventListener('click', stopQrScanner);
 
   // Request video capture permission on page load
